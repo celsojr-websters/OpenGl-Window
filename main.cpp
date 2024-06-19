@@ -4,13 +4,16 @@
 #include <iostream>
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void processInput(GLFWwindow *window);
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods);
+
+bool upKeyPressed = false;
+bool downKeyPressed = false;
 
 // settings
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
-float clearColor[4] = {0.2f, 0.3f, 0.3f, 1.0f};
+float clearColor[4] = {0.0f, 0.0f, 0.0f, 1.0f};
 
 int main()
 {
@@ -36,6 +39,11 @@ int main()
     }
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetKeyCallback(window, keyCallback);
+
+    double lastTime = glfwGetTime();
+    double deltaTime = 0.0;
+
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -49,20 +57,34 @@ int main()
     // -----------
     while (!glfwWindowShouldClose(window))
     {
-        // input
-        // -----
-        processInput(window);
+
 
         // render
         // ------
         // glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
 
         // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
         // -------------------------------------------------------------------------------
-        glfwSwapBuffers(window);
         glfwPollEvents();
+
+        double currentTime = glfwGetTime();
+        deltaTime = currentTime - lastTime;
+        lastTime = currentTime;
+
+        if (upKeyPressed) {
+            clearColor[0] += 0.5f * deltaTime;
+            if (clearColor[0] > 1.0f) clearColor[0] = 1.0f; // Clamp to 1.0
+        }
+
+        if (downKeyPressed) {
+            clearColor[0] -= 0.5f * deltaTime;
+            if (clearColor[0] < 0.0f) clearColor[0] = 0.0f; // Clamp to 0.0
+        }
+
+        glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glfwSwapBuffers(window);
     }
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
@@ -73,17 +95,24 @@ int main()
 
 // process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
 // ---------------------------------------------------------------------------------------------------------
-void processInput(GLFWwindow *window)
-{
-    if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
 
-    if(glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
-        clearColor[0] = 1.0f; // Red
-        clearColor[1] = 0.0f;
-        clearColor[2] = 0.0f;
-        clearColor[3] = 1.0f;
-        // glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+// Key callback function
+void keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_UP) {
+        if (action == GLFW_PRESS) {
+            upKeyPressed = true;
+        } else if (action == GLFW_RELEASE) {
+            upKeyPressed = false;
+        }
+    }
+
+    if (key == GLFW_KEY_DOWN) {
+        if (action == GLFW_PRESS) {
+            downKeyPressed = true;
+        } else if (action == GLFW_RELEASE) {
+            downKeyPressed = false;
+        }
+    }
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
